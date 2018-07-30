@@ -1,6 +1,4 @@
 clear; clc; 
-figure(1);
-hold off;
 
 %% problem setup
 rng default
@@ -10,9 +8,9 @@ noise = 0.5 * randn(1,n);
 x = randn(2, n);
 y = 2 * (omega * x(1, :) + x(2, :) + noise > 0) - 1;
 d = 2;
-figure(2); hold off;
-scatter(x(1,y>0)', x(2,y>0)', '.b');hold on;
-scatter(x(1,y<0)', x(2,y<0)', '.r');hold on;
+figure(2); hold on;
+scatter(x(1,y>0)', x(2,y>0)', '.b');
+scatter(x(1,y<0)', x(2,y<0)', '.r');
 %% batch steepest descent
 % init
 w   = zeros(2, 1);
@@ -76,8 +74,11 @@ for t = 1:max_t
   w = w_new;
   f = f_new;
 end
+figure(1)
+hold off;
 
 % plot result by adagrad method
 figure(2);
 draw_line_2points([0.5/w(1), 0], [0, 0.5/w(2)], 'g');
 legend('y=1', 'y=-1','batch', 'adagrad');
+figure(2); hold off;
