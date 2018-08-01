@@ -2,3 +2,7 @@
 *.ini
 *.asv
 *.png
+*.aux
+*.log
+*.out
+*.gz
