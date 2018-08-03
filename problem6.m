@@ -71,7 +71,7 @@ for t = 1: max_iter_prox
   err_PG(t) = norm(Afull - Z,'fro')/norm(Afull,'fro');
 end
 err_PG = err_PG(1:t);
-rank(Z)
+% rank(Z)
 
 % plot
 figure(1);
