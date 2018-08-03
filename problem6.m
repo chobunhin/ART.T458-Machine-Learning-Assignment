@@ -1,6 +1,6 @@
 clear; clc; close all;
-%%
-% rng default
+%% Problem setting
+rng default
 m = 20;
 n = 40;
 r = 2;
@@ -14,11 +14,10 @@ A(Q) = NaN; % not valid entries
 
 
 %% non-negative matrix factorization method
-
 r_parm  = 3; % rank for non-negative matrix factorization
-U = rand(m, r_parm);
+U = 0.5*rand(m, r_parm);
 Udelete = U;
-V = rand(n, r_parm);
+V = 0.5*rand(n, r_parm);
 Vdelete = V;
 Qmat    = ones(m, n);
 Qmat(Q) = 0;
@@ -55,7 +54,7 @@ end
 err_NMF = err_NMF(1:t);
 %% proximal gradient method on nuclear norm normalization
 Z = zeros(m, n);
-lambda = 0.02; % nuclear norm penalty parameter
+lambda = 0.05; % nuclear norm penalty parameter
 
 max_iter_prox = 200;
 err_PG = zeros(max_iter_prox, 1);
@@ -79,7 +78,8 @@ semilogy(err_NMF, '.b'); hold on;
 semilogy(err_PG, '.r');
 legend('non-negative matrix fact','proximal gradient');
 
-
+% figure(2); 
+% surf(Z); % matrix recovered by proximal gradient method
 
 
 
