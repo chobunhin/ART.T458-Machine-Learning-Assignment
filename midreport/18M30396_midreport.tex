@@ -1,0 +1,168 @@
+\documentclass{article}
+\usepackage{latexsym}
+\usepackage{bm}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{calrsfs}
+\usepackage[all]{xy}
+\usepackage[linesnumbered,boxed]{algorithm2e}
+\usepackage{float}
+\usepackage[usenames,dvipsnames]{color}
+\usepackage{listings}
+\usepackage{textcomp}
+\usepackage[T1]{fontenc}
+\usepackage[Q=yes]{examplep}
+\usepackage{courier}
+\usepackage{subfigure}% in preamble
+\usepackage{bm}
+\usepackage{hyperref}
+
+\begin{document}
+\newcommand{\setr}{\mathbb{R}}
+\newenvironment{myproof}[1][Proof.]{\begin{trivlist}
+\item[\hskip \labelsep {\bfseries #1}]}{\end{trivlist}}
+
+
+\title{Machine Learning Mid-term Assignment 02}
+\author{18M30396 Cho Bunhin}
+\date{\today} 
+\maketitle
+Problems done: problem 1(all), problem 3(1,2,3), problem 6(all).
+
+MATLAB codes can be found at\newline
+\small
+\url{https://github.com/chobunhin/ART.T458-Machine-Learning-Assignment}
+\section*{Problem 1}
+\normalsize
+Linear logistic regression with Batch steep descent
+\begin{itemize}
+	\item For $i$-th sample, corresponding function value and gradient read
+		\begin{equation}
+		J_i(w)=\ln(1+\exp(-y_iw^Tx_i)) ,
+		\end{equation}
+		\begin{equation}
+		\frac{\partial J_i}{\partial w}(w)=-\frac{\exp(-y_iw^Tx_i)}{1+\exp(-y_iw^Tx_i)}y_ix_i,
+		\end{equation}
+	\item for $t$-th iteration, we update $w$ by a batch of samples as well as the $L^2$ penalty:
+		\begin{equation}
+		w^{t+1} = w^t - \eta \cdot \left(\sum_{i\in I^t}\frac{\partial J_i}{\partial w} + \lambda w^t\right).
+		\end{equation}
+\end{itemize}
+Linear logistic regression with AdaGrad method
+\begin{itemize}
+	\item Diagonal Hessian 
+		\begin{equation}
+		  H_t = diag(G_t^{1/2}),
+		\end{equation}
+		where $\{G_t\}_i = \sum_{\tau=1}^{t}\{g^\tau\}_i^2$, and $g$ is the gradient of full $J(w)$.
+  \item Accumulated gradient
+    \begin{equation}
+      d_t  = \sum_{\tau=1}^t g_{\tau}
+    \end{equation}
+  \item Updating rule:
+  	\begin{equation}
+  	  w^{t+1} = w^t - \eta_0 H_t^{-1}d_t
+  	\end{equation}
+\end{itemize}
+MATLAB code see \verb|problem1.m|
+\newline
+Comparisons:
+Toy Dataset II; Running spec see \verb|problem1.m|; We observed that AdaGrad method converges considerably faster than batch steepest descent method.
+\begin{figure}
+	\centering
+	\includegraphics[width=0.7\linewidth]{problem1_fval_comparison}
+	\caption{Function values comparison: blue-batch, red-adagrad}
+	\label{fig:problem1fvalcomparison}
+\end{figure}
+\begin{figure}
+	\centering
+	\includegraphics[width=0.7\linewidth]{problem1_result_comparison}
+	\caption{Separation results comparison}
+	\label{fig:problem1resultcomparison}
+\end{figure}
+
+
+\section*{Problem 3}
+\begin{myproof}[proof of 1.]
+	The original problem is equivalent to 
+	\begin{equation}
+	\begin{cases}\label{eq_problem_2}
+	\quad \min_{w\in\setr^d, z\in \setr^n} &z^T \bf{1}+\lambda \|w\|_2^2\\
+	\quad \mbox{s.t. } & z\geq 0 \\
+	                   & z_i+y_i w^T x_i - 1\geq 0 \\
+	\end{cases}
+	\end{equation}
+	with Lagrangian ($\mu\geq 0, \alpha\geq 0$):
+	\begin{equation}\label{eq_lagrange}
+	L(w,z;\mu,\alpha) = \langle z, \bf{1}\rangle +\lambda \langle w, w\rangle-\langle \mu, z \rangle - \langle \alpha, z \rangle - \sum_{i=1}^n (y_i \langle w, x_i\rangle -1).
+	\end{equation}
+	Following standard dual problem generating, we have
+	\begin{eqnarray}\label{eq_w_hat}
+	\frac{\partial L}{\partial w}=0 \Rightarrow \hat{w} = \frac{1}{2\lambda} \sum_{i=1}^{n}\alpha_i y_i x_i,
+	\end{eqnarray}
+	\begin{eqnarray}
+	\frac{\partial L}{\partial z}=0 \Rightarrow \bf{1} - \mu - \alpha = 0,
+	\end{eqnarray}
+	and the dual objective function now reads:
+	\begin{equation}
+	L(\hat{w},\hat{z};\mu,\alpha)=-\frac{1}{4\lambda}\langle \sum_{i=1}^{n}\alpha_i y_i x_i, \sum_{j=1}^{n}\alpha_j y_j x_j\rangle+\langle\alpha, \bf{1}\rangle,
+	\end{equation}
+	which gives the conclusion that
+	\begin{equation}
+	K_{ij} = y_iy_j\langle x_i, x_j\rangle,
+	\end{equation}
+	and the dual problem reads:
+	\begin{equation}
+	\begin{cases}\label{eq_problem_dual}
+	\quad \max_{\alpha\in \setr^n} &-\frac{1}{4\lambda}\langle\alpha,K\alpha\rangle + \langle\alpha,\bf{1}\rangle\\
+	\quad \mbox{s.t. } & \bf{0}\leq \alpha\leq \bf{1} 
+	\end{cases}
+	\end{equation}
+	\qed
+\end{myproof}
+
+\begin{myproof}[2.]
+	KKT condition $\Rightarrow \frac{\partial L}{\partial w}=0\Rightarrow\hat{w} = \frac{1}{2\lambda} \sum_{i=1}^{n}\alpha_i y_i x_i$ according to (\ref{eq_w_hat}).\qed
+\end{myproof}
+\newpage
+\begin{myproof}[3.]
+	MATLAB code see \verb|problem3.m|
+	\newline
+	Settings: Toy Dataset II; number of samples: 60; learning rate $\eta_t = \eta = 0.005$; iterate 1000 times. The primal-dual objective values as well as final result are shown in figure \ref{fig:problem3primaldual} and figure \ref{fig:problem3result}.
+	\begin{figure}[h!]
+		\centering
+		\includegraphics[width=0.7\linewidth]{problem3_primal_dual}
+		\caption{primal dual objective value wrt. iterate}
+		\label{fig:problem3primaldual}
+	\end{figure}
+	\begin{figure}[h!]
+		\centering
+		\includegraphics[width=0.7\linewidth]{problem3_result}
+		\caption{result given by SVM}
+		\label{fig:problem3result}
+	\end{figure}
+	
+\end{myproof}
+\section*{Problem 6}
+\begin{myproof}[1. nuclear norm] For matrix $Z\in \setr^{m\times n}$, let the singular values of $Z$ be
+	\begin{equation}
+	\sigma_1\geq\sigma_2\geq\cdots\geq\sigma_{\min(m,n)},
+	\end{equation}
+	then the nuclear norm of $Z$ reads
+	\begin{equation}
+	\|Z\|_\ast = \sum_{j=1}^{\min(m,n)}\sigma_j.
+	\end{equation}
+\qed
+\end{myproof}
+\begin{myproof}[2. proximal operator of nuclear norm]
+	Let $Z=U\Sigma V^T$ be the SVD of $Z$, where $\Sigma = diag\{\sigma_1,\sigma_2,\ldots,\sigma_{\min(m,n)}\}$. Then proximal operator
+	\begin{eqnarray}
+	Prox_{\lambda\|\cdot\|_\ast}(Z) &=& \arg\min_X \frac{1}{2}\|X-Z\|_F^2+\lambda\|X\|_\ast\\
+	&=&U\cdot diag\{S_\lambda(\sigma_1),\ldots, S_\lambda(\sigma_{\min(m,n)})\}\cdot V^T,
+	\end{eqnarray}
+	where soft shrinkage $S_\lambda(\sigma)=\max(\sigma-\lambda,0)$.
+	\qed
+\end{myproof}
+\end{document}
