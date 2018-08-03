@@ -12,7 +12,7 @@
 \usepackage[usenames,dvipsnames]{color}
 \usepackage{listings}
 \usepackage{textcomp}
-\usepackage[T1]{fontenc}
+%\usepackage[T1]{fontenc}
 \usepackage[Q=yes]{examplep}
 \usepackage{courier}
 \usepackage{subfigure}% in preamble
@@ -25,7 +25,7 @@
 \item[\hskip \labelsep {\bfseries #1}]}{\end{trivlist}}
 
 
-\title{Machine Learning Mid-term Assignment 02}
+\title{Machine Learning Mid-term Assignment (Shimosaka)}
 \author{18M30396 Cho Bunhin}
 \date{\today} 
 \maketitle
@@ -165,4 +165,78 @@ Toy Dataset II; Running spec see \verb|problem1.m|; We observed that AdaGrad met
 	where soft shrinkage $S_\lambda(\sigma)=\max(\sigma-\lambda,0)$.
 	\qed
 \end{myproof}
+\begin{myproof}[3.]
+  Proximal gradient method implementation:
+	\begin{itemize}
+		\item Objective function:
+		  \begin{equation}
+		  f(Z) = \sum_{i,j\in Q}|A_{i,j}-Z_{i,j}|^2+\lambda\|Z\|_\ast\equiv g(Z)+h(Z),
+		  \end{equation}
+		\item Gradient of smooth part:
+		  \begin{equation}
+		  \big(\nabla g(Z)\big)_{i,j}=
+		  \begin{cases}
+		  0 & (i,j)\not\in Q \\
+		  2(Z_{i,j}-A_{i,j}) & (i,j)\in Q,
+		  \end{cases}
+		  \end{equation}
+		  which infers that
+		  $ \|\nabla g(Z_1)-\nabla g(Z_2)\|_F \leq \gamma\|Z_1-Z_2\|_F$
+		  and Lipschitz constant $\gamma=2$.
+		\item Updating rule:
+		  \begin{align}
+		  Z^{(t+1)} &= \arg \min_Z \Big\{ \langle\nabla g(Z^{(t)}), Z-Z^{(t)}\rangle + \frac{\gamma}{2}\|Z-Z^{(t)}\|_F^2+h(Z)\Big\}\\
+		            &= \arg \min_Z \Big\{ \langle\nabla g(Z^{(t)}), Z-Z^{(t)}\rangle+\|Z-Z^{(t)}\|_F^2+\lambda \|Z\|_\ast\Big\}\\
+		            &= \mbox{Prox}_{\frac{\lambda}{2}\|\cdot\|_\ast}\Big(Z^{(t)}-\frac{1}{2}\nabla g(Z^{(t)})\Big)
+		  \end{align}
+    \item Parameter tunning: $\lambda = 0.05$; 200 iterations; all-zero initial guess.
+    \item For recovered low-rank matrix see figure \ref{fig:problem6resultsurfplot}.
+    \begin{figure}[!h]
+    	\centering
+    	\includegraphics[width=0.7\linewidth]{problem6_result_surfplot}
+    	\caption{Surf plot of recovered matrix given by nuclear norm regularization with proximal gradient method}
+    	\label{fig:problem6resultsurfplot}
+    \end{figure}
+	\end{itemize}
+\end{myproof}
+\begin{myproof}[4.]
+	Non-negative matrix factorization and comparison. MATLAB code see \verb|problem6.m|
+	
+	\begin{itemize}
+		\item Hierarchical alternating least squares (HALS) for NMF solves
+		\begin{equation}
+		\min \|A-\sum_{k=1}^r u_k v_k^T\|_Q^2
+		\end{equation}
+		alternatively w.r.t non-negative $u,v$ and successively w.r.t subscript $k$. Each update can be solved in close form as shown below. We only give formula on $u_k$.
+		\begin{align}
+		  f(u_k) &= \|R_k - u_k v_k^T\|_Q^2\\
+		         &= \sum_{i,j\in Q}\Big[(R_k)_{i,j}-(u_k)_i (v_k)_j\Big]^2,
+		\end{align}
+		$\partial f/\partial (u_k)_i=0$ yields (also considering non-negativity)
+		\begin{equation}
+		(u_k)_i = \max\Big(0, \frac{\sum_{i, (i,j)\in Q}(v_k)_j\cdot (R_k)_{i,j}}{\sum_{i, (i,j)\in Q} (v_k)_j^2}\Big),
+		\end{equation}
+		where residual matrix 
+		\begin{equation}
+		R_k = A-\sum_{l\neq k}u_l v_l^T.
+		\end{equation}
+		\item Parameter setting: rank for factorization $r=3$ (rank of $A$ is 2); 200 iterations; random initial guess with uniform dist on $[0,1]$;
+		Dataset III.
+		\item Relative error comparison with PG is recorded in figure \ref{fig:problem6resultcomparison}.
+		\begin{figure}[h!]
+			\centering
+			\includegraphics[width=0.7\linewidth]{problem6_result_comparison}
+			\caption{relative error comparison of HALS and PG}
+			\label{fig:problem6resultcomparison}
+		\end{figure}
+		\item Analysis for HALS: simple updating rule (fixed-point iteration); linear convergence to true matrix; tricky initial guess since the iteration fails when $u_k$ or $v_k$ becomes zero.
+		\item Analysis for PG: solving convex problem meaning convergence will not be a problem; not necessarily gives exact recovery; keep low-rank property well.
+		
+	\end{itemize}
+\end{myproof}
+\section*{Suggestion}
+The pdf slides of the lectures are a little bit too large, which makes it difficult for viewing the slides in computer. Also it would be thankful if searching function is available in the slides. Many thanks to Prof. Shimosaka for giving this excellent lecture.
 \end{document}
+
+
+
